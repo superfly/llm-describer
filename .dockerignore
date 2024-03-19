@@ -1,0 +1,8 @@
+.env
+pb_data
+fly.toml
+*.exe
+__debug*
+.gitignore
+Dockerfile
+.vscode
