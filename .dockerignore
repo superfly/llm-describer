@@ -6,3 +6,4 @@ __debug*
 .gitignore
 Dockerfile
 .vscode
+*.jpg
