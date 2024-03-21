@@ -13,9 +13,105 @@ func init() {
 	m.Register(func(db dbx.Builder) error {
 		jsonData := `[
 			{
+				"id": "ryjreaz08zdji3u",
+				"created": "2024-03-19 18:27:45.669Z",
+				"updated": "2024-03-21 18:13:02.783Z",
+				"name": "images",
+				"type": "base",
+				"system": false,
+				"schema": [
+					{
+						"system": false,
+						"id": "bbtbjjdu",
+						"name": "file",
+						"type": "file",
+						"required": true,
+						"presentable": false,
+						"unique": false,
+						"options": {
+							"mimeTypes": [
+								"image/jpeg",
+								"image/png",
+								"image/svg+xml",
+								"image/gif",
+								"image/webp"
+							],
+							"thumbs": [],
+							"maxSelect": 1,
+							"maxSize": 20000000,
+							"protected": true
+						}
+					},
+					{
+						"system": false,
+						"id": "zb0eec7o",
+						"name": "followups",
+						"type": "relation",
+						"required": false,
+						"presentable": false,
+						"unique": false,
+						"options": {
+							"collectionId": "w879h6ggcfuixkr",
+							"cascadeDelete": true,
+							"minSelect": null,
+							"maxSelect": null,
+							"displayFields": null
+						}
+					}
+				],
+				"indexes": [],
+				"listRule": "      @request.auth.id != \"\" &&\n      @request.auth.images.id ?= id\n",
+				"viewRule": "@request.auth.id != \"\" &&\n@request.auth.images.id ?= id\n",
+				"createRule": "@request.auth.id != \"\"",
+				"updateRule": "@request.auth.id != \"\" &&\n@request.auth.images.id ?= id",
+				"deleteRule": null,
+				"options": {}
+			},
+			{
+				"id": "w879h6ggcfuixkr",
+				"created": "2024-03-19 18:35:25.779Z",
+				"updated": "2024-03-21 18:43:25.436Z",
+				"name": "followups",
+				"type": "base",
+				"system": false,
+				"schema": [
+					{
+						"system": false,
+						"id": "idkdigjk",
+						"name": "user",
+						"type": "bool",
+						"required": false,
+						"presentable": false,
+						"unique": false,
+						"options": {}
+					},
+					{
+						"system": false,
+						"id": "7gbf23yk",
+						"name": "text",
+						"type": "text",
+						"required": true,
+						"presentable": false,
+						"unique": false,
+						"options": {
+							"min": null,
+							"max": null,
+							"pattern": ""
+						}
+					}
+				],
+				"indexes": [],
+				"listRule": "  @request.auth.id != \"\" &&\n@request.auth.images.followups.id ?= id",
+				"viewRule": "  @request.auth.id != \"\" &&\n@request.auth.images.followups.id ?= id",
+				"createRule": "  @request.auth.id != \"\"",
+				"updateRule": null,
+				"deleteRule": null,
+				"options": {}
+			},
+			{
 				"id": "_pb_users_auth_",
-				"created": "2024-03-19 18:14:29.523Z",
-				"updated": "2024-03-20 19:53:01.205Z",
+				"created": "2024-03-21 18:02:26.605Z",
+				"updated": "2024-03-21 18:02:26.614Z",
 				"name": "users",
 				"type": "auth",
 				"system": false,
@@ -90,102 +186,6 @@ func init() {
 					"onlyVerified": false,
 					"requireEmail": false
 				}
-			},
-			{
-				"id": "ryjreaz08zdji3u",
-				"created": "2024-03-19 18:27:45.669Z",
-				"updated": "2024-03-20 20:34:25.859Z",
-				"name": "images",
-				"type": "base",
-				"system": false,
-				"schema": [
-					{
-						"system": false,
-						"id": "bbtbjjdu",
-						"name": "file",
-						"type": "file",
-						"required": true,
-						"presentable": false,
-						"unique": false,
-						"options": {
-							"mimeTypes": [
-								"image/jpeg",
-								"image/png",
-								"image/svg+xml",
-								"image/gif",
-								"image/webp"
-							],
-							"thumbs": [],
-							"maxSelect": 1,
-							"maxSize": 20000000,
-							"protected": true
-						}
-					},
-					{
-						"system": false,
-						"id": "zb0eec7o",
-						"name": "followups",
-						"type": "relation",
-						"required": false,
-						"presentable": false,
-						"unique": false,
-						"options": {
-							"collectionId": "w879h6ggcfuixkr",
-							"cascadeDelete": true,
-							"minSelect": null,
-							"maxSelect": null,
-							"displayFields": null
-						}
-					}
-				],
-				"indexes": [],
-				"listRule": "@request.auth.id != \"\" &&\n@request.auth.images.id ?= id\n",
-				"viewRule": "@request.auth.id != \"\" &&\n@request.auth.images.id ?= id\n",
-				"createRule": "@request.auth.id != \"\"",
-				"updateRule": null,
-				"deleteRule": null,
-				"options": {}
-			},
-			{
-				"id": "w879h6ggcfuixkr",
-				"created": "2024-03-19 18:35:25.779Z",
-				"updated": "2024-03-20 18:56:51.222Z",
-				"name": "followups",
-				"type": "base",
-				"system": false,
-				"schema": [
-					{
-						"system": false,
-						"id": "idkdigjk",
-						"name": "user",
-						"type": "bool",
-						"required": false,
-						"presentable": false,
-						"unique": false,
-						"options": {}
-					},
-					{
-						"system": false,
-						"id": "7gbf23yk",
-						"name": "text",
-						"type": "text",
-						"required": true,
-						"presentable": false,
-						"unique": false,
-						"options": {
-							"min": null,
-							"max": null,
-							"pattern": ""
-						}
-					}
-				],
-				"indexes": [],
-				"listRule": "  @request.auth.id != \"\" &&\n@request.auth.images.followups.id ?= id",
-				"viewRule": "  @request.auth.id != \"\" &&\n@request.auth.images.followups.id ?= id",
-				"createRule": "  @request.auth.id != \"\" &&\n@request.auth.images.followups.id ?= id",
-				"updateRule": null,
-				"deleteRule": null,
-				"options": {}
 			}
 		]`
 
