@@ -13,13 +13,14 @@ import (
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
-	"github.com/tmc/langchaingo/memory"
 	"github.com/tmc/langchaingo/schema"
 )
 
-const PROMPT = "You are a helpful assistant describing images for blind screen reader users. Please describe this image."
+const INITIAL_PROMPT = "You are a helpful assistant describing images for blind screen reader users. Please describe this image."
 
-var llm *llms.LLM
+const FOLLOWUP_PROMPT = "You are a helpful assistant describing images for blind screen reader users. You have described the image and have been prompted by the user to provide more information. Please answer the user's question."
+
+var llm llms.Model
 
 func init() {
 	apiRoot := os.Getenv("OLLAMA_API")
@@ -28,7 +29,7 @@ func init() {
 		return
 	}
 	var err error
-	*llm, err = ollama.New(ollama.WithServerURL(apiRoot), ollama.WithModel("llava:34b"))
+	llm, err = ollama.New(ollama.WithServerURL(apiRoot), ollama.WithModel("llava:34b"))
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -66,7 +67,7 @@ func initializeDescriber(app *pocketbase.PocketBase) {
 			return err
 		}
 		content := []llms.MessageContent{
-			llms.TextParts(schema.ChatMessageTypeSystem, PROMPT),
+			llms.TextParts(schema.ChatMessageTypeSystem, INITIAL_PROMPT),
 			{
 				Role:  schema.ChatMessageTypeHuman,
 				Parts: []llms.ContentPart{llms.BinaryPart(blob.ContentType(), bytes)},
@@ -78,7 +79,7 @@ func initializeDescriber(app *pocketbase.PocketBase) {
 		}
 		followupIds := record.GetStringSlice("followups")
 		if llm != nil {
-			response, err := (*llm).GenerateContent(context.Background(), content)
+			response, err := llm.GenerateContent(context.Background(), content)
 			if err != nil {
 				return err
 			}
@@ -113,24 +114,56 @@ func initializeDescriber(app *pocketbase.PocketBase) {
 	})
 	app.OnRecordAfterUpdateRequest("images").Add(func(e *core.RecordUpdateEvent) error {
 		record := e.Record
-		ctx := context.Background()
-		mem := memory.NewConversationBuffer()
-		mem.ChatHistory.AddMessage(ctx, schema.SystemChatMessage{Content: PROMPT})
+		followups, err := app.Dao().FindCollectionByNameOrId("followups")
+		if err != nil {
+			return err
+		}
 		followupIds := record.GetStringSlice("followups")
-		for _, followupId := range followupIds {
-			followup, err := app.Dao().FindRecordById("followups", followupId)
+		if llm != nil {
+			content := []llms.MessageContent{
+				llms.TextParts(schema.ChatMessageTypeSystem, FOLLOWUP_PROMPT),
+			}
+			for _, followupId := range followupIds {
+				followup, err := app.Dao().FindRecordById("followups", followupId)
+				if err != nil {
+					return err
+				}
+				text := followup.GetString("text")
+				messageType := ""
+				if followup.GetBool("user") {
+					messageType = string(schema.ChatMessageTypeHuman)
+				} else {
+					messageType = string(schema.ChatMessageTypeAI)
+				}
+				content = append(content, llms.TextParts(schema.ChatMessageType(messageType), text))
+			}
+			response, err := llm.GenerateContent(context.Background(), content)
 			if err != nil {
 				return err
 			}
-			text := followup.GetString("text")
-			if followup.GetBool("user") {
-				mem.ChatHistory.AddUserMessage(ctx, text)
-			} else {
-				mem.ChatHistory.AddAIMessage(ctx, text)
+			for _, choice := range response.Choices {
+				followup := models.NewRecord(followups)
+				followup.Set("user", false)
+				followup.Set("text", choice.Content)
+				if err := app.Dao().SaveRecord(followup); err != nil {
+					return err
+				}
+				followupIds = append(followupIds, followup.Id)
 			}
+		} else {
+			followup := models.NewRecord(followups)
+			followup.Set("user", false)
+			followup.Set("text", "This is a stub followup because `OLLAMA_API` is not set.")
+			if err := app.Dao().SaveRecord(followup); err != nil {
+				return err
+			}
+			followupIds = append(followupIds, followup.Id)
 		}
-		// chain := chains.NewConversation(llm, mem)
-		// chain.Run
+		record.Set("followups", followupIds)
+		err = app.Dao().SaveRecord(record)
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 }
