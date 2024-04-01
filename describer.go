@@ -19,7 +19,7 @@ import (
 
 const PROMPT = "You are a helpful assistant describing images for blind screen reader users. Please describe this image."
 
-var llm *llms.Model
+var llm *llms.LLM
 
 func init() {
 	apiRoot := os.Getenv("OLLAMA_API")
@@ -73,6 +73,9 @@ func initializeDescriber(app *pocketbase.PocketBase) {
 			},
 		}
 		followups, err := app.Dao().FindCollectionByNameOrId("followups")
+		if err != nil {
+			return err
+		}
 		followupIds := record.GetStringSlice("followups")
 		if llm != nil {
 			response, err := (*llm).GenerateContent(context.Background(), content)
