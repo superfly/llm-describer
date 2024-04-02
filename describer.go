@@ -108,10 +108,12 @@ func initializeDescriber(app *pocketbase.PocketBase) {
 		}
 		return nil
 	})
+
 	app.OnRecordBeforeCreateRequest("followups").Add(func(e *core.RecordCreateEvent) error {
 		e.Record.Set("user", true)
 		return nil
 	})
+
 	app.OnRecordAfterUpdateRequest("images").Add(func(e *core.RecordUpdateEvent) error {
 		record := e.Record
 		followups, err := app.Dao().FindCollectionByNameOrId("followups")
