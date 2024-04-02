@@ -51,34 +51,34 @@ func initializeDescriber(app *pocketbase.PocketBase) {
 		if err != nil {
 			return err
 		}
-		key := record.BaseFilesPath() + "/" + record.GetString("file")
-		fsys, err := app.NewFilesystem()
-		if err != nil {
-			return err
-		}
-		defer fsys.Close()
-		blob, err := fsys.GetFile(key)
-		if err != nil {
-			return err
-		}
-		defer blob.Close()
-		bytes, err := io.ReadAll(blob)
-		if err != nil {
-			return err
-		}
-		content := []llms.MessageContent{
-			llms.TextParts(schema.ChatMessageTypeSystem, INITIAL_PROMPT),
-			{
-				Role:  schema.ChatMessageTypeHuman,
-				Parts: []llms.ContentPart{llms.BinaryPart(blob.ContentType(), bytes)},
-			},
-		}
 		followups, err := app.Dao().FindCollectionByNameOrId("followups")
 		if err != nil {
 			return err
 		}
 		followupIds := record.GetStringSlice("followups")
 		if llm != nil {
+			key := record.BaseFilesPath() + "/" + record.GetString("file")
+			fsys, err := app.NewFilesystem()
+			if err != nil {
+				return err
+			}
+			defer fsys.Close()
+			blob, err := fsys.GetFile(key)
+			if err != nil {
+				return err
+			}
+			defer blob.Close()
+			bytes, err := io.ReadAll(blob)
+			if err != nil {
+				return err
+			}
+			content := []llms.MessageContent{
+				llms.TextParts(schema.ChatMessageTypeSystem, INITIAL_PROMPT),
+				{
+					Role:  schema.ChatMessageTypeHuman,
+					Parts: []llms.ContentPart{llms.BinaryPart(blob.ContentType(), bytes)},
+				},
+			}
 			response, err := llm.GenerateContent(context.Background(), content)
 			if err != nil {
 				return err
@@ -122,8 +122,27 @@ func initializeDescriber(app *pocketbase.PocketBase) {
 		}
 		followupIds := record.GetStringSlice("followups")
 		if llm != nil {
+			key := record.BaseFilesPath() + "/" + record.GetString("file")
+			fsys, err := app.NewFilesystem()
+			if err != nil {
+				return err
+			}
+			defer fsys.Close()
+			blob, err := fsys.GetFile(key)
+			if err != nil {
+				return err
+			}
+			defer blob.Close()
+			bytes, err := io.ReadAll(blob)
+			if err != nil {
+				return err
+			}
 			content := []llms.MessageContent{
 				llms.TextParts(schema.ChatMessageTypeSystem, FOLLOWUP_PROMPT),
+				{
+					Role:  schema.ChatMessageTypeHuman,
+					Parts: []llms.ContentPart{llms.BinaryPart(blob.ContentType(), bytes)},
+				},
 			}
 			for _, followupId := range followupIds {
 				followup, err := app.Dao().FindRecordById("followups", followupId)
