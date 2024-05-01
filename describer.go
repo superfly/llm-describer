@@ -13,7 +13,6 @@ import (
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
-	"github.com/tmc/langchaingo/schema"
 )
 
 const INITIAL_PROMPT = "You are a helpful assistant describing images for blind screen reader users. Please describe this image."
@@ -73,9 +72,9 @@ func initializeDescriber(app *pocketbase.PocketBase) {
 				return err
 			}
 			content := []llms.MessageContent{
-				llms.TextParts(schema.ChatMessageTypeSystem, INITIAL_PROMPT),
+				llms.TextParts(llms.ChatMessageTypeSystem, INITIAL_PROMPT),
 				{
-					Role:  schema.ChatMessageTypeHuman,
+					Role:  llms.ChatMessageTypeHuman,
 					Parts: []llms.ContentPart{llms.BinaryPart(blob.ContentType(), bytes)},
 				},
 			}
@@ -138,9 +137,9 @@ func initializeDescriber(app *pocketbase.PocketBase) {
 				return err
 			}
 			content := []llms.MessageContent{
-				llms.TextParts(schema.ChatMessageTypeSystem, FOLLOWUP_PROMPT),
+				llms.TextParts(llms.ChatMessageTypeSystem, FOLLOWUP_PROMPT),
 				{
-					Role:  schema.ChatMessageTypeHuman,
+					Role:  llms.ChatMessageTypeHuman,
 					Parts: []llms.ContentPart{llms.BinaryPart(blob.ContentType(), bytes)},
 				},
 			}
@@ -152,11 +151,11 @@ func initializeDescriber(app *pocketbase.PocketBase) {
 				text := followup.GetString("text")
 				messageType := ""
 				if followup.GetBool("user") {
-					messageType = string(schema.ChatMessageTypeHuman)
+					messageType = string(llms.ChatMessageTypeHuman)
 				} else {
-					messageType = string(schema.ChatMessageTypeAI)
+					messageType = string(llms.ChatMessageTypeAI)
 				}
-				content = append(content, llms.TextParts(schema.ChatMessageType(messageType), text))
+				content = append(content, llms.TextParts(llms.ChatMessageType(messageType), text))
 			}
 			response, err := llm.GenerateContent(context.Background(), content)
 			if err != nil {
