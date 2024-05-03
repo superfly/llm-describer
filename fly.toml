@@ -9,7 +9,7 @@ primary_region = 'dfw'
 [build]
 
 [env]
-OLLAMA_API = 'http://llm-describer-llama.internal:11434'
+OLLAMA_API = 'http://llm-describer-llama.flycast'
 
 [[mounts]]
 source = 'data'
@@ -18,7 +18,7 @@ initial_size = '10gb'
 
 [http_service]
 internal_port = 8090
-force_https = true
+force_https = false
 auto_stop_machines = true
 auto_start_machines = true
 min_machines_running = 0
